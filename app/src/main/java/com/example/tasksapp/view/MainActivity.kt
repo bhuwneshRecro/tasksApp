@@ -84,9 +84,11 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     override fun onClick(p0: View?) {
         when (p0?.id) {
             R.id.ivBack -> {
+                binding.dpTask.visibility = View.GONE
                 onBackPressedDispatcher.onBackPressed()
             }
             R.id.ivAdd -> {
+                binding.dpTask.visibility = View.GONE
                 supportFragmentManager.commit {
                     addToBackStack(AddToDoFragment::class.java.simpleName)
                     add<AddToDoFragment>(R.id.flContainer)
@@ -94,6 +96,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             }
 
             R.id.ivCross -> {
+                binding.dpTask.visibility = View.GONE
                 CommonUtils.genericCastOrNull<TaskModel>(p0.getTag(R.id.ivCross))?.let {
                     taskToBeDeleted = it
                     CommonUtils.genericCastOrNull<Int>(p0.getTag(R.id.tvTitle))?.let { pos ->
@@ -123,6 +126,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             }
 
             R.id.cbITD -> {
+                binding.dpTask.visibility = View.GONE
                 CommonUtils.genericCastOrNull<TaskModel>(p0.getTag(R.id.cbITD))?.let {
                     CoroutineScope(Dispatchers.Default).launch {
                         viewModel.updateTask(it.apply { isComplete = it.isComplete })
@@ -131,6 +135,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             }
 
             R.id.ivMore -> {
+                binding.dpTask.visibility = View.GONE
                 val popupMenu = PopupMenu(this, p0)
                 popupMenu.menuInflater.inflate(R.menu.options_menu, popupMenu.menu)
                 popupMenu.setOnMenuItemClickListener { item ->
