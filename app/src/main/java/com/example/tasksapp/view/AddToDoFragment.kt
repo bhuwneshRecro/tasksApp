@@ -1,5 +1,6 @@
 package com.example.tasksapp.view
 
+import android.os.Build
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -7,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.fragment.app.activityViewModels
 import com.example.tasksapp.R
 import com.example.tasksapp.databinding.FragmentAddToDoBinding
@@ -17,30 +19,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
-/**
- * A simple [Fragment] subclass.
- * Use the [AddToDoFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
 class AddToDoFragment : Fragment(), View.OnClickListener {
-    // TODO: Rename and change types of parameters
-    private var param1: Boolean? = null
-    private var param2: String? = null
 
     private lateinit var binding: FragmentAddToDoBinding
     private val viewModel: TasksViewModel by activityViewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getBoolean(ARG_PARAM1, false)
-            param2 = it.getString(ARG_PARAM2)
-        }
     }
 
     override fun onCreateView(
@@ -75,26 +60,6 @@ class AddToDoFragment : Fragment(), View.OnClickListener {
         binding.atvAA.setAdapter(adapter)
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment AddToDoFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: Boolean, param2: String) =
-            AddToDoFragment().apply {
-                arguments = Bundle().apply {
-                    putBoolean(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
-            }
-    }
-
     private fun checkForm(): Boolean {
         CommonUtils.hideKeyboard(requireActivity(), binding.root)
         if (binding.etTitle.text.toString().trim().isEmpty()) {
@@ -106,7 +71,7 @@ class AddToDoFragment : Fragment(), View.OnClickListener {
         } else {
             var time = binding.etTime.text.toString()
             if (!time.contains(":")) {
-                if (time.toInt() > 12 || time.toInt()<1) {
+                if (time.toInt() > 12 || time.toInt() < 1) {
                     Toast.makeText(requireContext(), "Invalid time format", Toast.LENGTH_SHORT)
                         .show()
                     return false
@@ -191,6 +156,7 @@ class AddToDoFragment : Fragment(), View.OnClickListener {
         return true
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onClick(p0: View?) {
         when (p0?.id) {
             R.id.ivBackFATD, R.id.btnCancel -> {
@@ -199,28 +165,34 @@ class AddToDoFragment : Fragment(), View.OnClickListener {
 
             R.id.btnAdd -> {
                 if (checkForm()) {
-                    if (param1 == true) {
-//                        viewModel.updateTask()
-                    } else {
-                        CoroutineScope(Dispatchers.Default).launch {
-                            viewModel.insertTask(
-                                TaskModel(
-                                    meridiem = binding.atvAA.text.toString(),
-                                    time = "${binding.etTime.text.toString()} ${binding.atvAA.text}",
-                                    title = binding.etTitle.text.toString(),
-                                    date = CommonUtils.getCurrentDate()
-                                )
-                            )
-                            val tasks = viewModel.getAllTasks()
-                            requireActivity().runOnUiThread {
-                                viewModel.tasksList.value = tasks
-                            }
-                            requireActivity().supportFragmentManager.popBackStack()
-                        }
-                    }
+                    var time = binding.etTime.text.toString()
+                    if (time.split(":")[0].length == 1)
+                        time = "0$time"
+                    if (CommonUtils.isTimeCheck("$time ${binding.atvAA.text}")) {
+                        insertTask(true)
+                    } else insertTask(false)
                 }
                 binding.etTime.setSelection(binding.etTime.length())
             }
         }
     }
+
+    private fun insertTask(isNextDay: Boolean) {
+        CoroutineScope(Dispatchers.Default).launch {
+            viewModel.insertTask(
+                TaskModel(
+                    meridiem = binding.atvAA.text.toString(),
+                    time = "${binding.etTime.text.toString()} ${binding.atvAA.text}",
+                    title = binding.etTitle.text.toString(),
+                    date = if (isNextDay) CommonUtils.getNextDate() else CommonUtils.getCurrentDate()
+                )
+            )
+            val tasks = viewModel.getAllTasks()
+            requireActivity().runOnUiThread {
+                viewModel.tasksList.value = tasks
+            }
+            requireActivity().supportFragmentManager.popBackStack()
+        }
+    }
+
 }

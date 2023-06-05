@@ -98,37 +98,7 @@ class TasksAdapter(
             val currentMeridiem =
                 DateFormat.format("AAA", Calendar.getInstance().time).toString().uppercase()
             if (model.meridiem.equals(currentMeridiem)) {
-                var modelTime = model.time.toString()
-                if (modelTime.isNotEmpty() && modelTime.split(" ")[0].split(":")[0].length < 2) {
-                    modelTime = "0$modelTime"
-                } else {
-                    //do nothing
-                }
-                if (CommonUtils.isTimeGreater(
-                        CommonUtils.getCurrentDateAndTime().uppercase(),
-                        "${model.date} $modelTime"
-                    )
-                ) {
-                    binding.lblPending.visibility = View.VISIBLE
-                    binding.tvTitle.apply {
-                        setTextColor(
-                            ContextCompat.getColor(
-                                this.context,
-                                R.color.text_color_red
-                            )
-                        )
-                    }
-                } else {
-                    binding.lblPending.visibility = View.GONE
-                    binding.tvTitle.apply {
-                        setTextColor(
-                            ContextCompat.getColor(
-                                this.context,
-                                R.color.black
-                            )
-                        )
-                    }
-                }
+                checkForPendingActual(model)
             } else {
                 if (currentMeridiem == binding.tvTime.context.getString(R.string.am)) {
                     binding.lblPending.visibility = View.GONE
@@ -141,15 +111,41 @@ class TasksAdapter(
                         )
                     }
                 } else {
-                    binding.lblPending.visibility = View.VISIBLE
-                    binding.tvTitle.apply {
-                        setTextColor(
-                            ContextCompat.getColor(
-                                this.context,
-                                R.color.text_color_red
-                            )
+                    checkForPendingActual(model)
+                }
+            }
+        }
+
+        private fun checkForPendingActual(model: TaskModel) {
+            var modelTime = model.time.toString()
+            if (modelTime.isNotEmpty() && modelTime.split(" ")[0].split(":")[0].length < 2) {
+                modelTime = "0$modelTime"
+            } else {
+                //do nothing
+            }
+            if (CommonUtils.isTimeGreater(
+                    CommonUtils.getCurrentDateAndTime().uppercase(),
+                    "${model.date} $modelTime"
+                )
+            ) {
+                binding.lblPending.visibility = View.VISIBLE
+                binding.tvTitle.apply {
+                    setTextColor(
+                        ContextCompat.getColor(
+                            this.context,
+                            R.color.text_color_red
                         )
-                    }
+                    )
+                }
+            } else {
+                binding.lblPending.visibility = View.GONE
+                binding.tvTitle.apply {
+                    setTextColor(
+                        ContextCompat.getColor(
+                            this.context,
+                            R.color.black
+                        )
+                    )
                 }
             }
         }

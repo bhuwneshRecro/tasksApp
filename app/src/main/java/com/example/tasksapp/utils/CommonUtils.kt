@@ -7,10 +7,12 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import androidx.annotation.RequiresApi
 import com.example.tasksapp.model.TaskModel
+import com.google.android.material.datepicker.MaterialDatePicker.Builder.datePicker
 import java.text.DateFormat
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
+import java.time.OffsetDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -62,6 +64,19 @@ object CommonUtils {
         return df.format(c)
     }
 
+    fun getNextDate(): String {
+        val c = Calendar.getInstance()
+        c.add(Calendar.DATE, 1)
+
+        val df = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
+        return df.format(c.time)
+    }
+
+    fun getCurrentTimeInMillis(): Long {
+        val calendar = Calendar.getInstance()
+        return calendar.time.time
+    }
+
     fun getCurrentDateAndTime(): String {
         val c = Calendar.getInstance().time
 
@@ -81,14 +96,15 @@ object CommonUtils {
         return timeInMilliseconds > timeInMilliseconds2
     }
 
-    fun sortAsc(list: List<TaskModel>): List<TaskModel>{
+    fun sortAsc(list: List<TaskModel>): List<TaskModel> {
         return list.sortedWith(
             comparator = object : Comparator<TaskModel> {
                 @SuppressLint("SimpleDateFormat")
                 var f: DateFormat = SimpleDateFormat("dd-MM-yyyy hh:mm a")
                 override fun compare(p0: TaskModel?, p1: TaskModel?): Int {
                     return try {
-                        f.parse("${p0?.date} ${p0?.time}").compareTo("${p1?.date} ${p1?.time}".let { f.parse(it) })
+                        f.parse("${p0?.date} ${p0?.time}")
+                            .compareTo("${p1?.date} ${p1?.time}".let { f.parse(it) })
                     } catch (e: ParseException) {
                         throw IllegalArgumentException(e)
                     }
@@ -96,19 +112,33 @@ object CommonUtils {
             })
     }
 
-    fun sortDsc(list: List<TaskModel>): List<TaskModel>{
+    fun sortDsc(list: List<TaskModel>): List<TaskModel> {
         return list.sortedWith(
             comparator = object : Comparator<TaskModel> {
                 @SuppressLint("SimpleDateFormat")
                 var f: DateFormat = SimpleDateFormat("dd-MM-yyyy hh:mm a")
                 override fun compare(p0: TaskModel?, p1: TaskModel?): Int {
                     return try {
-                        f.parse("${p1?.date} ${p1?.time}").compareTo("${p0?.date} ${p0?.time}".let { f.parse(it) })
+                        f.parse("${p1?.date} ${p1?.time}")
+                            .compareTo("${p0?.date} ${p0?.time}".let { f.parse(it) })
                     } catch (e: ParseException) {
                         throw IllegalArgumentException(e)
                     }
                 }
             })
+    }
+
+    fun isTimeCheck(time: String): Boolean {
+        val formatter =
+            SimpleDateFormat("hh:mm a")
+        val currCal = Calendar.getInstance()
+        val currTimeInMillis = getCurrentTimeInMillis()
+        val localDate = formatter.parse(time)
+        val cal = Calendar.getInstance()
+        cal.time = localDate
+        cal.set(currCal.get(Calendar.YEAR), currCal.get(Calendar.MONTH), currCal.get(Calendar.DATE))
+        val timeInMillis = cal.time.time
+        return timeInMillis < currTimeInMillis
     }
 
 }
